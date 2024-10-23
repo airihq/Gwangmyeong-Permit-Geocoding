@@ -2,3 +2,4 @@ pandas
 googlemaps
 python-dotenv
 openpyxl
+streamlit

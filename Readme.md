@@ -27,3 +27,9 @@ GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 ```
 python main.py
 ```
+
+## streamlit
+데이터 테이블을 시각화하고, 동별 및 연도/월별 필터링 기능을 제공
+```
+streamlit run app.py
+```
