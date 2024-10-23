@@ -1,4 +1,4 @@
-import app as st
+import streamlit as st
 import pandas as pd
 
 # 첨부한 파일 경로
@@ -105,6 +105,9 @@ filtered_df = df[
 if '전체' not in select_multi_species:
     # 사용자가 선택한 동이 '대지위치' 텍스트에 포함된 경우를 필터링
     filtered_df = filtered_df[filtered_df['대지위치'].apply(lambda x: any(dong in x for dong in select_multi_species))]
+
+# '동' 컬럼 삭제 후 출력
+filtered_df = filtered_df.drop(columns=['동'])
 
 # 필터링된 데이터 테이블 출력
 st.write(f"선택된 착공예정 연도 범위: {start_year} - {end_year}, 월 범위: {start_month} - {end_month}")
