@@ -21,6 +21,7 @@ select_multi_species = st.sidebar.multiselect(
 
 # '착공예정일', '실착공일', '사용승인일'에서 NaN 또는 빈 값이 있는 행을 제외
 df = df.dropna(subset=['착공예정일', '실착공일', '사용승인일'])
+df = df[(df['착공예정일'] != '') & (df['실착공일'] != '') & (df['사용승인일'] != '')]
 
 # '착공예정일', '실착공일', '사용승인일'을 str로 변환하여 연도, 월을 추출하기 쉽게 함
 df['착공예정일'] = df['착공예정일'].apply(lambda x: str(int(x)) if pd.notna(x) else '')
@@ -41,12 +42,15 @@ df['사용승인_월'] = df['사용승인일'].apply(lambda x: x[4:6] if x else 
 
 # 착공예정일 슬라이더
 st.sidebar.title("착공예정일 필터링")
-min_start_year = int(df['착공_연도'].min())
-max_start_year = int(df['착공_연도'].max())
-selected_start_year_range = st.sidebar.slider(
-    '착공예정 연도 범위 선택',
-    min_value=min_start_year, max_value=max_start_year, value=(min_start_year, max_start_year)
-)
+min_start_year = int(df['착공_연도'].dropna().astype(int).min())
+max_start_year = int(df['착공_연도'].dropna().astype(int).max())
+if min_start_year < max_start_year:
+    selected_start_year_range = st.sidebar.slider(
+        '착공예정 연도 범위 선택',
+        min_value=min_start_year, max_value=max_start_year, value=(min_start_year, max_start_year)
+    )
+else:
+    st.sidebar.write(f"착공예정일 연도: {min_start_year}년")
 
 selected_start_month_range = st.sidebar.slider(
     '착공예정 월 범위 선택',
@@ -55,12 +59,15 @@ selected_start_month_range = st.sidebar.slider(
 
 # 실착공일 슬라이더
 st.sidebar.title("실착공일 필터링")
-min_actual_start_year = int(df['실착공_연도'].min())
-max_actual_start_year = int(df['실착공_연도'].max())
-selected_actual_start_year_range = st.sidebar.slider(
-    '실착공 연도 범위 선택',
-    min_value=min_actual_start_year, max_value=max_actual_start_year, value=(min_actual_start_year, max_actual_start_year)
-)
+min_actual_start_year = int(df['실착공_연도'].dropna().astype(int).min())
+max_actual_start_year = int(df['실착공_연도'].dropna().astype(int).max())
+if min_actual_start_year < max_actual_start_year:
+    selected_actual_start_year_range = st.sidebar.slider(
+        '실착공 연도 범위 선택',
+        min_value=min_actual_start_year, max_value=max_actual_start_year, value=(min_actual_start_year, max_actual_start_year)
+    )
+else:
+    st.sidebar.write(f"실착공 연도: {min_actual_start_year}년")
 
 selected_actual_start_month_range = st.sidebar.slider(
     '실착공 월 범위 선택',
@@ -69,12 +76,15 @@ selected_actual_start_month_range = st.sidebar.slider(
 
 # 사용승인일 슬라이더
 st.sidebar.title("사용승인일 필터링")
-min_approval_year = int(df['사용승인_연도'].min())
-max_approval_year = int(df['사용승인_연도'].max())
-selected_approval_year_range = st.sidebar.slider(
-    '사용승인 연도 범위 선택',
-    min_value=min_approval_year, max_value=max_approval_year, value=(min_approval_year, max_approval_year)
-)
+min_approval_year = int(df['사용승인_연도'].dropna().astype(int).min())
+max_approval_year = int(df['사용승인_연도'].dropna().astype(int).max())
+if min_approval_year < max_approval_year:
+    selected_approval_year_range = st.sidebar.slider(
+        '사용승인 연도 범위 선택',
+        min_value=min_approval_year, max_value=max_approval_year, value=(min_approval_year, max_approval_year)
+    )
+else:
+    st.sidebar.write(f"사용승인 연도: {min_approval_year}년")
 
 selected_approval_month_range = st.sidebar.slider(
     '사용승인 월 범위 선택',
@@ -82,23 +92,33 @@ selected_approval_month_range = st.sidebar.slider(
 )
 
 # 선택된 범위로 데이터 필터링
-start_year, end_year = selected_start_year_range
+if min_start_year < max_start_year:
+    start_year, end_year = selected_start_year_range
+else:
+    start_year, end_year = min_start_year, max_start_year
+
 start_month, end_month = selected_start_month_range
+if min_actual_start_year < max_actual_start_year:
+    actual_start_year, actual_end_year = selected_actual_start_year_range
+else:
+    actual_start_year, actual_end_year = min_actual_start_year, max_actual_start_year
 
-actual_start_year, actual_end_year = selected_actual_start_year_range
 actual_start_month, actual_end_month = selected_actual_start_month_range
+if min_approval_year < max_approval_year:
+    approval_start_year, approval_end_year = selected_approval_year_range
+else:
+    approval_start_year, approval_end_year = min_approval_year, max_approval_year
 
-approval_start_year, approval_end_year = selected_approval_year_range
 approval_start_month, approval_end_month = selected_approval_month_range
 
 # 필터링
 filtered_df = df[
-    (df['착공_연도'].astype(int) >= start_year) & (df['착공_연도'].astype(int) <= end_year) &
-    (df['착공_월'].astype(int) >= start_month) & (df['착공_월'].astype(int) <= end_month) &
-    (df['실착공_연도'].astype(int) >= actual_start_year) & (df['실착공_연도'].astype(int) <= actual_end_year) &
-    (df['실착공_월'].astype(int) >= actual_start_month) & (df['실착공_월'].astype(int) <= actual_end_month) &
-    (df['사용승인_연도'].astype(int) >= approval_start_year) & (df['사용승인_연도'].astype(int) <= approval_end_year) &
-    (df['사용승인_월'].astype(int) >= approval_start_month) & (df['사용승인_월'].astype(int) <= approval_end_month)
+    (df['착공_연도'].astype(float) >= start_year) & (df['착공_연도'].astype(float) <= end_year) &
+    (df['착공_월'].astype(float) >= start_month) & (df['착공_월'].astype(float) <= end_month) &
+    (df['실착공_연도'].astype(float) >= actual_start_year) & (df['실착공_연도'].astype(float) <= actual_end_year) &
+    (df['실착공_월'].astype(float) >= actual_start_month) & (df['실착공_월'].astype(float) <= actual_end_month) &
+    (df['사용승인_연도'].astype(float) >= approval_start_year) & (df['사용승인_연도'].astype(float) <= approval_end_year) &
+    (df['사용승인_월'].astype(float) >= approval_start_month) & (df['사용승인_월'].astype(float) <= approval_end_month)
 ]
 
 # 선택된 동이 포함된 행 필터링
