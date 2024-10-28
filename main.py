@@ -44,8 +44,18 @@ for file_path in xlsx_files:
     # '대지위치' 열에서 NaN 값을 제거한 후 인덱스 초기화
     df_cleaned = df.dropna(subset=['대지위치']).reset_index(drop=True)
 
-    # '대지위치', '착공예정일', '실착공일', '사용승인일' 컬럼만 추출
-    df_locations = df_cleaned[['대지위치', '착공예정일', '실착공일', '사용승인일']]
+    # '대지위치', '착공예정일', '실착공일', '사용승인일' 컬럼에 추가적인 면적 및 용도 컬럼 추출
+    columns_to_extract = [
+        '대지위치', '착공예정일', '실착공일', '사용승인일',
+        '대지면적(㎡)', '건축면적(㎡)', '건폐율(%)', '연면적(㎡)',
+        '용적률산정용면적(㎡)', '용적률(%)', '동별개요.1', '동별개요.2'
+    ]
+    # Renaming '동별개요.1' and '동별개요.2' to '주용도' and '기타용도' for clarity
+    df_locations = df_cleaned[columns_to_extract].rename(columns={'동별개요.1': '주용도', '동별개요.2': '기타용도'})
+
+    # Converting date columns to integer format
+    for date_col in ['착공예정일', '실착공일', '사용승인일']:
+        df_locations[date_col] = pd.to_numeric(df_locations[date_col], errors='coerce').astype('Int64')
 
     # 지오코딩 결과 저장을 위한 리스트
     lat = []  # 위도
@@ -88,4 +98,3 @@ for file_path in xlsx_files:
 
 # 모든 데이터를 하나의 CSV 파일로 저장
 all_data.to_csv("지오코딩_결과.csv", index=False, encoding='utf-8-sig')
-
